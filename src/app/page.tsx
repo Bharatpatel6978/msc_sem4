@@ -1,6 +1,9 @@
 import { auth } from "@/auth";
+import AdminDashboard from "@/components/AdminDashboard";
+import DeliveryBoy from "@/components/DeliveryBoy";
 import EditRoleMobile from "@/components/EditRoleMobile";
 import Nav from "@/components/Nav";
+import UserDashboard from "@/components/UserDashboard";
 import connectDb from "@/lib/db";
 import User from "@/models/user.model";
 import { redirect } from "next/navigation";
@@ -10,6 +13,8 @@ async function Home() {
   await connectDb()
   const session = await auth()
   const user = await User.findById(session?.user?.id)
+  console.log("user",user);
+  
   if(!user){
     redirect("/login")
   }
@@ -25,7 +30,11 @@ async function Home() {
   return (
     <>
       <Nav  user={plainUser}/>
-      
+      {user.role == "user"?(
+        <UserDashboard />
+      ):user.role == "admin"?(
+        <AdminDashboard/>
+      ):<DeliveryBoy/>}
     </>
   );
 }

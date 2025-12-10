@@ -4,6 +4,7 @@ import connectDb from "./lib/db";
 import User from "./models/user.model";
 import bcrypt from "bcryptjs";
 import { log } from "console";
+import { Session } from "inspector";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -40,12 +41,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     
 
-    jwt({ token, user }) {
+    jwt({ token, user,trigger,session }) {
       if (user) {
         token.id = user.id,
           token.name = user.name,
           token.email = user.email,
           token.role = user.role
+      }
+
+      if(trigger=="update"){
+        token.role = session.role
       }
       return token
     },
