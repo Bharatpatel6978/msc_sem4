@@ -29,7 +29,7 @@ const grocerySchema = new mongoose.Schema<IGrocery>(
         "Personal Care",
         "Household Essentials",
         "Instant & Package Food",
-        "Baby & Pet Care",
+        "Baby & Pet Care"
       ],
       required: true,
     },
