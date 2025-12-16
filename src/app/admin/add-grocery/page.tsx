@@ -125,8 +125,8 @@ function AddGrocery() {
                         </label>
                         <select name="unit" value={unit}  className="cursor-pointer w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-400 transition-all bg-white" onChange={(e)=>setUnit(e.target.value)}>
                             <option value="">Select Units</option>
-                            {units.map(cat=>(
-                                <option value={cat}>{cat}</option>
+                            {units.map((cat,index)=>(
+                                <option key={index} value={cat}>{cat}</option>
                             ))}
                         </select>
                     </div>
