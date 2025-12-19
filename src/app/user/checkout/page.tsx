@@ -3,6 +3,8 @@ import { motion } from "motion/react";
 import {
   ArrowLeft,
   Building,
+  CreditCard,
+  CreditCardIcon,
   Home,
   Loader2,
   LocateFixed,
@@ -10,6 +12,7 @@ import {
   Navigation,
   Phone,
   Search,
+  Truck,
   User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -30,6 +33,7 @@ const markerIcon = new L.Icon({
 function Checkout() {
   const router = useRouter();
   const { userData } = useSelector((state: RootState) => state.user);
+  const { subTotal,deliveyFee,finalTotal } = useSelector((state: RootState) => state.cart);
   const [address, setAddress] = useState({
     fullName: "",
     mobile: "",
@@ -41,7 +45,7 @@ function Checkout() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [position, setPosition] = useState<[number, number] | null>(null);
-
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -106,12 +110,14 @@ function Checkout() {
         if(!position) return
         try {
           const result = await axios.get(`https://nominatim.openstreetmap.org/reverse?lat=${position[0]}&lon=${position[1]}&format=json`)
-          console.log(result.data)
-          setAddress(prev=>({...prev,
-            city:result.data.address.city,
-            state:result.data.address.state,
-            pincode:result.data.address.postcode,
-            fullAddress:result.data.display_name
+          // console.log(result.data)
+
+          setAddress(prev=>({
+            ...prev,
+            city:result.data.address.city ||"",
+            state:result.data.address.state||"",
+            pincode:result.data.address.postcode||"",
+            fullAddress:result.data.display_name ||""
           }))
           
         } catch (error) {
@@ -205,7 +211,7 @@ function Checkout() {
               <input
                 placeholder="Full Address"
                 type="text"
-                value={address.fullAddress}
+                value={address.fullAddress ||""}
                 onChange={(e) =>
                   setAddress((prev) => ({
                     ...prev,
@@ -224,7 +230,7 @@ function Checkout() {
                 <input
                   placeholder="Full Address"
                   type="text"
-                  value={address.city}
+                  value={address.city ||""}
                   onChange={(e) =>
                     setAddress((prev) => ({ ...prev, city:e.target.value }))
                   }
@@ -239,7 +245,7 @@ function Checkout() {
                 <input
                   placeholder="state"
                   type="text"
-                  value={address.state}
+                  value={address.state ||""}
                   onChange={(e) =>
                     setAddress((prev) => ({ ...prev, state: e.target.value }))
                   }
@@ -254,7 +260,7 @@ function Checkout() {
                 <input
                   placeholder="Pincode"
                   type="text"
-                  value={address.pincode}
+                  value={address.pincode ||""}
                   onChange={(e) =>
                     setAddress((prev) => ({
                       ...prev,
@@ -272,7 +278,7 @@ function Checkout() {
                 className="flex-1 border rounded-lg p-3 text-sm focus:ring-2 focus:ring-green-500 outline-none"
                 value={searchQuery} onChange={(e)=>setSearchQuery(e.target.value)}
               />
-              <button onClick={handleSearchQuery} className="bg-green-600 text-white px-5 rounded-lg hover:bg-green-700 transition-all font-medium">
+              <button onClick={handleSearchQuery} className= "cursor-pointer bg-green-600 text-white px-5 rounded-lg hover:bg-green-700 transition-all font-medium">
                 { searchLoading ?<Loader2 className="animate-spin" size={16} /> : "Search"}
               </button>
             </div>
@@ -293,7 +299,7 @@ function Checkout() {
                 </MapContainer>)}
                 <motion.button 
                 whileTap={{scale:0.93}}
-                className="absolute bottom-4 ring-4 cursor-pointer bg-green-600 text-white shadow-lg rounded-full p-3 hover:bg-green-700 transition-all flex items-center justify-center z-999"
+                className="absolute right-10 bottom-10 ring-4 cursor-pointer bg-green-600 text-white shadow-lg rounded-full p-3 hover:bg-green-700 transition-all flex items-center justify-center z-999"
                 onClick={handleCurrentLocation}
                 >
                   <LocateFixed className="" size={22}/>
@@ -303,7 +309,63 @@ function Checkout() {
           </div>
         </motion.div>
 
-        
+        <motion.div
+        initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100"
+        >
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <CreditCard className="text-green-600"/> Payment Method
+          </h2>
+          <div className="space-y-4 mb-6">
+            <button
+            onClick={()=>setPaymentMethod("online")}
+             className={`
+              flex cursor-pointer items-center gap-3 w-full border rounded-lg p-3 transition-all ${
+                paymentMethod==="online"
+                ? "border-green-600 bg-green-50 shadow-sm"
+                : "hover:bg-gray-50"
+              }`}>
+              <CreditCardIcon className="text-green-600" /><span className="font-medium text-gray-700" >Pay Online (stripe) </span>
+            </button>
+            <button
+            onClick={()=>setPaymentMethod("cod")}
+
+             className={`
+              flex cursor-pointer items-center gap-3 w-full border rounded-lg p-3 transition-all ${
+                paymentMethod==="cod"
+                ? "border-green-600 bg-green-50 shadow-sm"
+                : "hover:bg-gray-50"
+              }`}>
+              <Truck className="text-green-600" /><span className="font-medium text-gray-700" >Cash on Delivery</span>
+            </button>
+          </div>
+          <div className="border-t pt-4 text-gray-700 space-y-2 text-sm sm:text-base">
+            <div className="flex justify-between">
+              <span className="font-semibold" >Subtotal</span>
+              <span className="font-semibold text-green-600" >₹{subTotal}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-semibold">Delivery Fee</span>
+              <span  className="font-semibold text-green-600">₹{deliveyFee}</span>
+            </div>
+            <div className="flex justify-between font-bold text-lg border-t pt-3">
+              <span className="font-semibold">Final Total</span>
+              <span  className="font-semibold text-green-600">₹{finalTotal}</span>
+            </div>
+          </div>
+
+          <motion.button
+          whileTap={{scale:0.93}}
+          className=" cursor-pointer w-full mt-6 bg-green-600 text-white py-3 rounded-full hover:bg-green-700 transition-all font-semibold"
+          >
+             {paymentMethod=="cod"
+             ?"Place Order (COD)"
+             :"Proceed to Pay Online"}
+          </motion.button>
+        </motion.div>
+
       </div>
     </div>
   );
