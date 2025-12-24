@@ -7,6 +7,17 @@ interface IUser{
     password : string
     mobile?: string
     role:"user" | "deliveryBoy"| "admin"
+    location:{
+        type:{
+            type:StringConstructor;
+            enum:string[],
+            default:string
+        };
+        cordinates:{
+            type:NumberConstructor[];
+            default:number[];
+        }
+    }
 }
 const userSchema = new mongoose.Schema<IUser>({
     name:{
@@ -30,9 +41,22 @@ const userSchema = new mongoose.Schema<IUser>({
         type:String,
         enum:["user","deliveryBoy","admin"],
         default:"user"
+    },
+    location:{
+        type:{
+            type:String,
+            enum:["point"],
+            default:"Point"
+        },
+        cordinates:{
+            type:[Number],
+            default:[0,0]
+        }
     }
 
 },{timestamps:true})
+
+userSchema.index({location:"2dsphere"})
 
 const User = mongoose.models.User || mongoose.model("User",userSchema)
 export default User
